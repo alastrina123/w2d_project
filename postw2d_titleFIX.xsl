@@ -17,7 +17,7 @@
 		<xsl:choose>
 			<xsl:when test="following-sibling::*[1]/*[1]/name()='image'">
 				<fig id="{concat('fig_',generate-id())}" frame="all">
-					<title class="fig/title">
+					<title class="- topic/title">
 						<xsl:value-of select="text()"/>
 					</title>
 					<image id="{concat('figIMG_',generate-id())}" align="center" placement="break"
@@ -31,8 +31,8 @@
 			</xsl:when>
 			<xsl:when test="following-sibling::*[1]/name()='table'">
 				<table id="{concat('table_',generate-id())}" class="- topic/table "
-					outputclass="DX:FootnotesInTable">
-					<title class="- table/title ">
+					outputclass="Dx:FootnotesInTable">
+					<title class="- topic/title ">
 						<xsl:value-of select="text()"/>
 					</title>
 					<xsl:copy-of select="following-sibling::table/tgroup"/>
