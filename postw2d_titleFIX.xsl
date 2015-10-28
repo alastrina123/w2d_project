@@ -16,7 +16,7 @@
 	<xsl:template match="title">
 		<xsl:choose>
 			<xsl:when test="following-sibling::*[1]/*[1]/name()='image'">
-				<fig id="{concat('fig_',generate-id())}" frame="all">
+				<fig id="{concat('fig_',generate-id())}" frame="all" class="- topic/fig ">
 					<title class="- topic/title">
 						<xsl:value-of select="text()"/>
 					</title>
