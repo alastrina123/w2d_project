@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="techlit.w2d.postProcess" default="postProcess">
+    	
+	<xmlcatalog id="dita.catalog">
+		<dtd publicId="-//OASIS//DTD DITA Concept//EN"
+			 location="C:\Program Files\Oxygen XML Editor 16\frameworks\dita\DITA-OT\dtd\technicalContent\dtd\concept.dtd"/>
+		<dtd publicId="-//OASIS//DTD DITA Reference//EN"
+			 location="C:\Program Files\Oxygen XML Editor 16\frameworks\dita\DITA-OT\dtd\technicalContent\dtd\reference.dtd"/>
+	</xmlcatalog>
+	
+	<target name="initProperties">
+		<dirname property="build.base.dir" file="${ant.file}"/>
+		<property name ="process.input.dir" location="C:\Users\Andrew\Desktop\Word2DITA\DB2732\out\topics"/>
+		<property name="techlit.transforms.dir" location="${build.base.dir}\techlitTRANSFORMS"/>
+		<property name="process.new.dir" location="${process.input.dir}/new"/>
+
+		<echo message="+++ word2dita-specific properties:"/>
+		  <echoproperties format="text" regex="^(techlit*)"/>
+	</target>
+	<target name="initDirs" depends="initProperties">
+		<echo message="[INFO] Cleaning new topics directory ${process.new.dir}..."/>
+		<delete dir="${process.new.dir}" failonerror="true" includeemptydirs="true">
+			<include name="**/*"/>
+		</delete>
+		<mkdir dir="${process.new.dir}"/>
+	</target>
+
+			<target name="postProcess" depends="initDirs">
+		<xslt style="${techlit.transforms.dir}/strip_nodesATTRIBS.xsl"
+			  basedir="${process.input.dir}"
+			  destdir="${process.new.dir}"
+			  	scanincludeddirectories="false"
+			  extension=".xml">
+			<xmlcatalog refid="dita.catalog"/>
+		</xslt>
+
+			  	<xslt style="${techlit.transforms.dir}/titleFIX.xsl"
+				  basedir="${process.new.dir}"
+				  destdir="${process.input.dir}"
+				  scanincludeddirectories="false"
+				  extension=".xml"
+				  processor="org.apache.tools.ant.taskdefs.optional.TraXLiaison">
+       				<factory name="net.sf.saxon.TransformerFactoryImpl"/>
+		<classpath location="C:\Program Files\Oxygen XML Editor 16\lib\saxon9ee.jar" id="saxon-classpath" />
+			<xmlcatalog refid="dita.catalog"/>
+		</xslt>
+
+		<antcall target="initDirs"/>
+
+		<xslt style="${techlit.transforms.dir}/DOCtypeFIX.xsl"
+				  basedir="${process.input.dir}"
+				  destdir="${process.new.dir}"
+				  scanincludeddirectories="false"
+				  extension=".xml">
+			<xmlcatalog refid="dita.catalog"/>
+		</xslt>
+
+	</target>
+
+</project>
