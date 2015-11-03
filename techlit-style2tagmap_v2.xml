@@ -26,106 +26,111 @@
               doctype-public="-//OASIS//DTD DITA Reference//EN"/>
 			  
 
-      <paragraphStyle styleName="Title"
-                      level="0"
-                      structureType="mapTitle"
-                      tagName="title">
-         <mapProperties format="map" prologType="topicmeta" tagName="title"/>
+      <paragraphStyle 		styleName="Title"
+                      		level="0"
+                      		structureType="mapTitle"
+                      		tagName="title">
+         <mapProperties 	format="map"
+         			prologType="topicmeta"
+         			tagName="title"/>
       </paragraphStyle>
 	  
-	<paragraphStyle	styleName="mapattribute_id"
-					structureType="skip"
-					containingTopic="root"
-    />  
+	<paragraphStyle		styleName="mapattribute_id"
+				structureType="skip"
+				containingTopic="root"/>  
 
-	<paragraphStyle	styleName="mapattribute_rev"
-					structureType="skip"
-					containingTopic="root"
-    />   
+	<paragraphStyle		styleName="mapattribute_rev"
+				structureType="skip"
+				containingTopic="root"/>   
     
-    <paragraphStyle	styleName="mapdata_DocType"
-					topicZone="prolog"
-					structureType="prologData"
-					baseClass="- topic/data "
-					containingTopic="root"
-					level="0"
-					tagName="data" 
-					dataName="DocType"
-					putValueIn="value"
-    />
+    	<paragraphStyle		styleName="mapdata_DocType"
+    				topicZone="prolog"
+				structureType="prologData"
+				baseClass="- topic/data "
+				containingTopic="root"
+				level="0"
+				tagName="data" 
+				dataName="DocType"
+				putValueIn="value"/>
 
-	<paragraphStyle styleName="ShortDesc"
-					secondStructureType="topicTitle"
-					tagName="shortdesc"
-					topicZone="shortdesc"
-					level="1">
-         <topicrefProperties topicrefType="topicref"/>
-         <topicProperties topicDoc="yes"
-                          topicType="reference"
-                          format="reference"
-                          outputclass="Dx:ShortDescription"/>
+	<paragraphStyle 	styleName="ShortDesc"
+				secondStructureType="topicTitle"
+				tagName="shortdesc"
+				topicZone="shortdesc"
+				level="1">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="reference"
+                          	format="reference"
+                          	outputclass="Dx:ShortDescription"/>
 	</paragraphStyle>
 
-	<paragraphStyle styleName="CovHead1"
-                      structureType="topicTitle"
-                      tagName="title"
-                      topicZone="body"
-                      level="1">
-         <topicrefProperties topicrefType="topicref"/>
-         <topicProperties topicDoc="yes"
-                          topicType="concept"
-                          bodyType="conbody"
-                          format="concept"
-                          outputclass="Dx:CoverPage"/>
+	<paragraphStyle 	styleName="CovHead1"
+                      		structureType="topicTitle"
+                      		tagName="title"
+                      		topicZone="body"
+                      		level="1">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="concept"
+                          	bodyType="conbody"
+                          	format="concept"
+                          	outputclass="Dx:CoverPage"/>
 	</paragraphStyle>
 						  
-	<paragraphStyle styleName="Heading 1"
-                      structureType="topicTitle"
-                      tagName="title"
-                      topicZone="body"
-                      level="1">
-         <topicrefProperties topicrefType="topicref"/>
-         <topicProperties topicDoc="yes"
-                          topicType="concept"
-                          bodyType="conbody"
-                          format="concept"/>
+	<paragraphStyle 	styleName="CovHead2"
+                      		structureType="topicTitle"
+                      		tagName="title"
+                      		topicZone="body"
+                      		level="2">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="concept"
+                          	bodyType="conbody"
+                          	format="concept"
+                          	outputclass="Dx:CoverPage"/>
+	</paragraphStyle>
+	<paragraphStyle 	styleName="Heading 1"
+                      		structureType="topicTitle"
+                      		tagName="title"
+                      		topicZone="body"
+                      		level="1">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="concept"
+                          	bodyType="conbody"
+                          	format="concept"/>
 	</paragraphStyle>
 
-	<paragraphStyle styleName="Heading 2"
-                      structureType="topicTitle"
-                      tagName="title"
-                      topicZone="body"
-                      level="2">
-         <topicrefProperties topicrefType="topicref"/>
-         <topicProperties topicDoc="yes"
-                          topicType="concept"
-                          bodyType="conbody"
-                          format="concept"/>
+	<paragraphStyle 	styleName="Heading 2"
+                      		structureType="topicTitle"
+                      		tagName="title"
+                      		topicZone="body"
+                      		level="2">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="concept"
+                          	bodyType="conbody"
+                          	format="concept"/>
 	</paragraphStyle>
     
-      <paragraphStyle styleName="Heading 3"
-                      structureType="topicTitle"
-                      tagName="title"
-                      topicZone="body"
-                      level="3">
-         <topicrefProperties topicrefType="topicref"/>
-         <topicProperties topicDoc="yes"
-                          topicType="concept"
-                          bodyType="conbody"
-                          format="concept"/>
+      <paragraphStyle 		styleName="Heading 3"
+                      		structureType="topicTitle"
+                      		tagName="title"
+                      		topicZone="body"
+                      		level="3">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="concept"
+                          	bodyType="conbody"
+                          	format="concept"/>
       </paragraphStyle>
     
       <paragraphStyle styleName="Body Text" tagName="p" topicZone="body" level="1"/>
       <paragraphStyle styleName="Normal" tagName="p" topicZone="body" level="1"/>
-	  
       <paragraphStyle styleName="Caption" tagName="title" topicZone="body" level="1"/>
-
       <paragraphStyle styleName="Codeblock" tagName="codeblock" topicZone="body" level="1"/>
-	  
-      <paragraphStyle styleName="Default Paragraph Font"
-                      tagName="ph"
-                      topicZone="body"
-                      level="1"/>
+      <paragraphStyle styleName="Default Paragraph Font" tagName="ph" topicZone="body" level="1"/>
 
       <paragraphStyle styleName="TOC 1" structureType="skip"/>
       <paragraphStyle styleName="TOC 2" structureType="skip"/>
@@ -157,6 +162,7 @@
                       level="1"
                       structureType="block"
                       topicZone="body"/>
+
       <paragraphStyle styleName="List Number 2"
                       containerType="ol"
                       tagName="li"
