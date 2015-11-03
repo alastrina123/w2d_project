@@ -62,7 +62,8 @@
          <topicrefProperties topicrefType="topicref"/>
          <topicProperties topicDoc="yes"
                           topicType="reference"
-                          format="reference"/>
+                          format="reference"
+                          outputclass="Dx:ShortDescription"/>
 	</paragraphStyle>
 
 	<paragraphStyle styleName="CovHead1"
@@ -74,7 +75,8 @@
          <topicProperties topicDoc="yes"
                           topicType="concept"
                           bodyType="conbody"
-                          format="concept"/>
+                          format="concept"
+                          outputclass="Dx:CoverPage"/>
 	</paragraphStyle>
 						  
 	<paragraphStyle styleName="Heading 1"
