@@ -126,11 +126,21 @@
                           	format="concept"/>
       </paragraphStyle>
     
-      <paragraphStyle styleName="Body Text" tagName="p" topicZone="body" level="1"/>
+      <paragraphStyle 		styleName="Heading 4"
+                      		structureType="topicTitle"
+                      		tagName="title"
+                      		topicZone="body"
+                      		level="4">
+         <topicrefProperties 	topicrefType="topicref"/>
+         <topicProperties 	topicDoc="yes"
+                          	topicType="concept"
+                          	bodyType="conbody"
+                          	format="concept"/>
+      </paragraphStyle>
+
       <paragraphStyle styleName="Normal" tagName="p" topicZone="body" level="1"/>
       <paragraphStyle styleName="Caption" tagName="title" topicZone="body" level="1"/>
       <paragraphStyle styleName="Codeblock" tagName="codeblock" topicZone="body" level="1"/>
-      <paragraphStyle styleName="Default Paragraph Font" tagName="ph" topicZone="body" level="1"/>
 
       <paragraphStyle styleName="TOC 1" structureType="skip"/>
       <paragraphStyle styleName="TOC 2" structureType="skip"/>
@@ -169,9 +179,12 @@
                       level="2"
                       structureType="block"
                       topicZone="body"/>
-    
+                      
+      <characterStyle styleName="Code" tagName="codeph" structureType="block"/>
       <characterStyle styleName="Hyperlink" structureType="xref"/>
-      <characterStyle styleName="Bold" tagName="b" structureType="block"/>
-
+      <characterStyle styleName="Strong" tagName="b" structureType="block"/>
+      <characterStyle styleName="Subscript" tagName="sub" structureType="block"/>
+      <characterStyle styleName="Superscript" tagName="sup" structureType="block"/>
+      
   </styles>
 </style2tagmap>
