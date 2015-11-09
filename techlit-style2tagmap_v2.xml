@@ -141,6 +141,7 @@
       <paragraphStyle styleName="Normal" tagName="p" topicZone="body" level="1"/>
       <paragraphStyle styleName="Caption" tagName="title" topicZone="body" level="1"/>
       <paragraphStyle styleName="Codeblock" tagName="codeblock" topicZone="body" level="1"/>
+      <paragraphStyle styleName="Note" tagName="note" topicZone="body" level="1"/>
 
       <paragraphStyle styleName="TOC 1" structureType="skip"/>
       <paragraphStyle styleName="TOC 2" structureType="skip"/>
