@@ -1,5 +1,5 @@
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-	<xsl:output method="xml" indent="yes"/>
+	<xsl:output method="xml" indent="yes" doctype-public="-//OASIS//DTD DITA Concept//EN" doctype-system="concept.dtd"/>
 	<xsl:strip-space elements="*"/>
 
 	<xsl:template match="node()|@*">
@@ -17,7 +17,7 @@
 		<xsl:choose>
 			<xsl:when test="following-sibling::*[1]/*[1]/name()='image'">
 				<fig id="{concat('fig_',generate-id())}" frame="all" class="- topic/fig ">
-					<title class="- topic/title">
+					<title class="- topic/title ">
 						<xsl:value-of select="text()"/>
 					</title>
 					<image id="{concat('figIMG_',generate-id())}" align="center" placement="break"
@@ -35,7 +35,7 @@
 					<title class="- topic/title ">
 						<xsl:value-of select="text()"/>
 					</title>
-					<xsl:copy-of select="following-sibling::table/tgroup"/>
+					<xsl:copy-of select="following-sibling::*[1]/tgroup"/>
 				</table>
 				<xsl:call-template name="killELEMENT"/>
 			</xsl:when>
