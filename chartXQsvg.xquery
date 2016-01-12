@@ -29,19 +29,19 @@ declare variable $gridCOL as xs:string external := 'rgb(159,159,159)';
 
 declare variable $sheetNAME as xs:string external := 'DATASHEET CURVES';
 
-declare variable $sheetrID as xs:string := //b:sheet[@name=$sheetNAME]/@r:id/data();
-declare variable $sheetTGT as xs:string := doc(concat(substring-before(document-uri(.),'workbook.xml'),'_rels/workbook.xml.rels'))//rels:Relationship[@Id=$sheetrID]/@Target/data();
+declare variable $sheetrID := //b:sheet[@name=$sheetNAME]/@r:id/data();
+declare variable $sheetTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'_rels/workbook.xml.rels'))//rels:Relationship[@Id=$sheetrID]/@Target/data();
 declare variable $sheetFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),$sheetTGT));
 
-declare variable $SHTdwgsrID as xs:string := $sheetFILE//b:drawing/@r:id/data();
-declare variable $SHTdwgsTGT as xs:string := doc(concat(substring-before(document-uri(.),'workbook.xml'),'worksheets/_rels',substring-after($sheetTGT,'worksheets'),'.rels'))//rels:Relationship[@Id=$SHTdwgsrID]/@Target/data();
+declare variable $SHTdwgsrID := $sheetFILE//b:drawing/@r:id/data();
+declare variable $SHTdwgsTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'worksheets/_rels',substring-after($sheetTGT,'worksheets'),'.rels'))//rels:Relationship[@Id=$SHTdwgsrID]/@Target/data();
 declare variable $SHTdwgsFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),substring-after($SHTdwgsTGT,'../')));
 
-declare variable $colWIDTHdef as xs:float external := 9.14;
-declare variable $rowHEIGHTdef as xs:float external := $sheetFILE//sheetFormatPr/@defaultRowHeight/data();
+declare variable $colWIDTHdef as xs:decimal external := 9.14;
+declare variable $rowHEIGHTdef as xs:decimal external := $sheetFILE//sheetFormatPr/@defaultRowHeight/data() cast as xs:decimal;
 
-declare variable $chartAREAwd as xs:string external := local:chartWIDTH();
-declare variable $chartAREAht as xs:string external := local:chartHEIGHT();
+declare variable $chartAREAwd as xs:decimal external := local:chartWIDTH() cast as xs:decimal;
+declare variable $chartAREAht as xs:decimal external := local:chartHEIGHT() cast as xs:decimal;
 
 declare variable $plotAREAwd as xs:string external;
 declare variable $plotAREAht as xs:string external;
@@ -95,19 +95,19 @@ declare function local:plotTSPAN($txtSTRNG)
 
 declare function local:chartWIDTH()
     {for $chartNAMES in $SHTdwgsFILE//xdr:cNvPr[contains(@name, 'Chart')]
-    let $chartFRcol as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:col/text()
-    let $chartFOFFcol as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:coloff/text()
+    let $chartFRcol as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:col/text() cast as xs:integer
+    let $chartFOFFcol as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:coloff/text() cast as xs:integer
 
-    let $chartTOcol as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:col/text()
-    let $chartTOFFcol as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:coloff/text()
+    let $chartTOcol as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:col/text() cast as xs:integer
+    let $chartTOFFcol as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:coloff/text() cast as xs:integer
 
     for $chartCOLUMNS in $chartFRcol to $chartTOcol
         for $colWIDTHS in $sheetFILE//col
-        where ($chartCOLUMNS gt or eq $colWIDTHS//col/@min cast as xs:integer) and ($chartCOLUMNS lt or eq $sheetFILE//@max cast as xs:integer)
-        let $chartAREAwdCUST := sum($colWIDTHS/@width/data cast as xs:float)
+        where ($chartCOLUMNS ge $colWIDTHS//col/@min cast as xs:integer) and ($chartCOLUMNS le $sheetFILE//@max cast as xs:integer)
+        let $chartAREAwdCUST := sum($colWIDTHS/@width/data() cast as xs:float)
     for $chartCOLUMNS in $chartFRcol to $chartTOcol
         for $colWIDTHS in $sheetFILE//col
-        where ($chartCOLUMNS lt or eq $colWIDTHS//col/@min cast as xs:integer) or ($chartCOLUMNS gt or eq $sheetFILE//@max cast as xs:integer)
+        where ($chartCOLUMNS le $colWIDTHS//col/@min cast as xs:integer) or ($chartCOLUMNS ge $sheetFILE//@max cast as xs:integer)
         let $chartAREAwdDEF := count($colWIDTHS) * $colWIDTHdef
     (:the offset values below are in EMU and need conversion:)
     return ($chartAREAwdCUST + $chartAREAwdDEF - $chartFOFFcol + $chartTOFFcol)
@@ -115,11 +115,11 @@ declare function local:chartWIDTH()
 
 declare function local:chartHEIGHT()
     {for $chartNAMES in $SHTdwgsFILE//xdr:cNvPr[contains(@name, 'Chart')]
-    let $chartFRrow as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:row/text()
-    let $chartFOFFrow as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:rowoff/text()    
+    let $chartFRrow as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:row/text() cast as xs:integer
+    let $chartFOFFrow as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:rowoff/text() cast as xs:integer
 
-    let $chartTOrow as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:row/text()
-    let $chartTOFFrow as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:rowoff/text()    
+    let $chartTOrow as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:row/text() cast as xs:integer
+    let $chartTOFFrow as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:to/xdr:rowoff/text() cast as xs:integer 
 
     for $chartROWS in $chartFRrow to $chartTOrow
     (:the offset values below are in EMU and need conversion:)
@@ -127,8 +127,8 @@ declare function local:chartHEIGHT()
     };
     
     for $chartNAMES in $SHTdwgsFILE//xdr:cNvPr[contains(@name, 'Chart')]
-    let $chartFRrow as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:row/text()    
-    let $chartFRcol as xs:integer := /ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:col/text()
+    let $chartFRrow := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:row/text()    
+    let $chartFRcol := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:col/text()
 
     order by $chartFRrow, $chartFRcol
 
@@ -215,19 +215,18 @@ declare function local:chartHEIGHT()
         $pathSTRK),
 
 (:find drawings file via relationships and retrieve text box info:)
-
     let $UshapesID := $chartFILE//c:userShapes/@r:id/data()
     let $thisDOC := substring-after(document-uri(.),'/xl/charts/')
     let $RELfile := concat(substring-before(document-uri(.),$thisDOC),'_rels/',$thisDOC,'.rels') cast as xs:anyURI
-let $DRAWfile := concat(substring-before(document-uri(.),'charts/'),substring-after(doc($RELfile)/rels:Relationships/rels:Relationship[@Id=$RELid]/@Target/data(),'../')) cast as xs:anyURI
+let $DRAWfile := concat(substring-before(document-uri(.),'charts/'),substring-after(doc($RELfile)/rels:Relationships/rels:Relationship[@Id=$UshapesID]/@Target/data(),'../')) cast as xs:anyURI
 return
     (for $txtBOX in doc($DRAWfile)//cdr:relSizeAnchor
-    where $txtBOX//@txBox="1"
+    where $txtBOX//@txBox eq 1
     let $txtBOXx0 := $txtBOX/cdr:from/cdr:x
     let $txtBOXy0 := $txtBOX/cdr:from/cdr:y
     let $txtBOXx1 := $txtBOX/cdr:to/cdr:x
     let $txtBOXy1 := $txtBOX/cdr:to/cdr:y
-    return (local:plotRECT($txtBOXx0,$txtBOXy0,$txtBOXx1,$txtBOXy1),
+    return (local:svgRECT($txtBOXx0,$txtBOXy0,$txtBOXx1,$txtBOXy1,'none','black',0),
         (let $txtPOSx := $txtBOXx0 + (($txtBOXx1 - $txtBOXx0) div 2)
         let $txtPOSy := $txtBOXy0 + (($txtBOXy1 - $txtBOXy0) div 2)
         return
