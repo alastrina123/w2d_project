@@ -37,14 +37,14 @@ declare variable $SHTdwgsrID := $sheetFILE//b:drawing/@r:id/data();
 declare variable $SHTdwgsTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'worksheets/_rels',substring-after($sheetTGT,'worksheets'),'.rels'))//rels:Relationship[@Id=$SHTdwgsrID]/@Target/data();
 declare variable $SHTdwgsFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),substring-after($SHTdwgsTGT,'../')));
 
-declare variable $colWIDTHdef as xs:decimal external := 9.14;
-declare variable $rowHEIGHTdef as xs:decimal external := $sheetFILE//sheetFormatPr/@defaultRowHeight/data() cast as xs:decimal;
+declare variable $colWIDTHdef external := 9.14;
+declare variable $rowHEIGHTdef external := $sheetFILE//sheetFormatPr/@defaultRowHeight/data() cast as xs:decimal;
 
-declare variable $chartAREAwd as xs:decimal external := local:chartWIDTH() cast as xs:decimal;
-declare variable $chartAREAht as xs:decimal external := local:chartHEIGHT() cast as xs:decimal;
+declare variable $chartAREAwd external := local:chartWIDTH() cast as xs:decimal;
+declare variable $chartAREAht external := local:chartHEIGHT() cast as xs:decimal;
 
-declare variable $plotAREAwd as xs:string external;
-declare variable $plotAREAht as xs:string external;
+declare variable $plotAREAwd as xs:float external;
+declare variable $plotAREAht as xs:float external;
 
 
 declare function local:svgTITLE($TITLE)
@@ -136,8 +136,8 @@ declare function local:chartHEIGHT()
     let $chartTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'drawings/_rels',substring-after($SHTdwgsTGT,'drawings'),'.rels'))//rels:Relationship[@Id=$chartrID]/@Target/data() cast as xs:string
     let $chartFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),substring-after($chartTGT,'../')))
 
-    let $plotXOrig := (try {($chartAREAwd - $plotAREAwd) div 2} catch * {$chartAREAwd * $chartFILE//plotArea//c:x/@val/data cast as xs:float})
-    let $plotYOrig := (try {($chartAREAht - $plotAREAht) div 2} catch * {$chartAREAht * $chartFILE//plotArea//c:y/@val/data cast as xs:float})
+    let $plotXOrig := (try {($chartAREAwd - $plotAREAwd) div 2} catch * {$chartAREAwd * $chartFILE//plotArea//c:x/@val/data() cast as xs:float})
+    let $plotYOrig := (try {($chartAREAht - $plotAREAht) div 2} catch * {$chartAREAht * $chartFILE//plotArea//c:y/@val/data() cast as xs:float})
 
     return
     document
@@ -157,7 +157,7 @@ declare function local:chartHEIGHT()
         let $axMIN := $AXES/c:scaling/c:min/@val/data()
         let $axMINOR := $AXES//c:minorUnit/@val/data()
         let $axMAJOR := $AXES//c:majorUnit/@val/data()
-        let $gridCOUNT as xs:integer := fn:round(($axMAX - $axMIN) div $axMINOR)
+        let $gridCOUNT := fn:round(($axMAX - $axMIN) div $axMINOR) cast as xs:integer
         
         for $gridLINE in 1 to ($gridCOUNT - 1)
         return
@@ -189,7 +189,7 @@ declare function local:chartHEIGHT()
                 ($plotXOrig + $plotAREAwd)),
                 $plotYOrig + ($gridLINE div $gridCOUNT * $plotAREAht)
                 ),
-                if ($axNUM = '2') then
+                if ($axNUM eq 2) then
                     local:svgTEXT(
                     'text-anchor: middle',
                     $stdFONT,
@@ -206,36 +206,39 @@ declare function local:chartHEIGHT()
 
     for $plotDIMS in $chartFILE//c:plotArea
     return local:svgRECT(
-        (try {($chartAREAwd - $plotAREAwd) div 2} catch * {$chartAREAwd * $chartFILE//plotArea//c:x/@val/data cast as xs:float}),
-        (try {($chartAREAht - $plotAREAht) div 2} catch * {$chartAREAht * $chartFILE//plotArea//c:y/@val/data cast as xs:float}),
-        (try {$plotAREAwd} catch * {$chartAREAwd * $chartFILE//plotArea//c:w/@val/data cast as xs:float}),
-        (try {$plotAREAht} catch * {$chartAREAht * $chartFILE//plotArea//c:h/@val/data cast as xs:float}),
+        (try {($chartAREAwd - $plotAREAwd) div 2} catch * {$chartAREAwd * $chartFILE//plotArea//c:x/@val/data() cast as xs:float}),
+        (try {($chartAREAht - $plotAREAht) div 2} catch * {$chartAREAht * $chartFILE//plotArea//c:y/@val/data() cast as xs:float}),
+        (try {$plotAREAwd} catch * {$chartAREAwd * $chartFILE//plotArea//c:w/@val/data() cast as xs:float}),
+        (try {$plotAREAht} catch * {$chartAREAht * $chartFILE//plotArea//c:h/@val/data() cast as xs:float}),
         'none',
         'black',
         $pathSTRK),
 
 (:find drawings file via relationships and retrieve text box info:)
     let $UshapesID := $chartFILE//c:userShapes/@r:id/data()
-    let $thisDOC := substring-after(document-uri(.),'/xl/charts/')
-    let $RELfile := concat(substring-before(document-uri(.),$thisDOC),'_rels/',$thisDOC,'.rels') cast as xs:anyURI
-let $DRAWfile := concat(substring-before(document-uri(.),'charts/'),substring-after(doc($RELfile)/rels:Relationships/rels:Relationship[@Id=$UshapesID]/@Target/data(),'../')) cast as xs:anyURI
-return
-    (for $txtBOX in doc($DRAWfile)//cdr:relSizeAnchor
-    where $txtBOX//@txBox eq 1
-    let $txtBOXx0 := $txtBOX/cdr:from/cdr:x
-    let $txtBOXy0 := $txtBOX/cdr:from/cdr:y
-    let $txtBOXx1 := $txtBOX/cdr:to/cdr:x
-    let $txtBOXy1 := $txtBOX/cdr:to/cdr:y
-    return (local:svgRECT($txtBOXx0,$txtBOXy0,$txtBOXx1,$txtBOXy1,'none','black',0),
-        (let $txtPOSx := $txtBOXx0 + (($txtBOXx1 - $txtBOXx0) div 2)
-        let $txtPOSy := $txtBOXy0 + (($txtBOXy1 - $txtBOXy0) div 2)
-        return
-            (<text x = "{$txtPOSx * 8}" y = "{$txtPOSy * 6}" style = "text-anchor: middle" font-family = "{$stdFONT}" font-size = "0.28224" fill = "black">
-            {for $txtSTRNG in $txtBOX//a:t
-                return 
+    let $chartFILE := substring-after(document-uri(.),'/xl/charts/')
+    let $chartRELS := concat(substring-before(document-uri(.),$chartFILE),'_rels/',$chartFILE,'.rels') cast as xs:anyURI
+    let $chartDWGS := concat(substring-before(document-uri(.),'charts/'),substring-after(doc($chartRELS)/rels:Relationships/rels:Relationship[@Id=$UshapesID]/@Target/data(),'../')) cast as xs:anyURI
+
+    for $txtBOX in doc($chartDWGS)//cdr:relSizeAnchor
+    where $txtBOX//@txBox eq '1'
+        let $txtBOXx0 := $txtBOX/cdr:from/cdr:x
+        let $txtBOXy0 := $txtBOX/cdr:from/cdr:y
+        let $txtBOXx1 := $txtBOX/cdr:to/cdr:x
+        let $txtBOXy1 := $txtBOX/cdr:to/cdr:y
+            return (local:svgRECT($txtBOXx0,$txtBOXy0,$txtBOXx1,$txtBOXy1,'none','black',0),
+                let $txtPOSx := $txtBOXx0 + (($txtBOXx1 - $txtBOXx0) div 2)
+                let $txtPOSy := $txtBOXy0 + (($txtBOXy1 - $txtBOXy0) div 2)
+                return local:svgTEXT(
+                    'text-anchor: middle',
+                    try {$stdFONTptSZ} catch * {},
+                    'black',
+                    $txtBOXx0,
+                    $txtBOXy0,
+                    {for $txtSTRNG in $txtBOX//a:t
+                    return 
                     (if ($txtSTRNG/preceding-sibling::a:rPr[1]/@baseline = -25000) then local:plotTSPAN($txtSTRNG/text()) else $txtSTRNG/text())
-             }       
-            </text>
+             })
             )
        )
 ))},
