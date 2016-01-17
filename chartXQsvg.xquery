@@ -24,28 +24,30 @@ declare variable $stdFONTcol as xs:string external :='black';
 declare variable $axlabFONTcol as xs:string external :='black';
 
 declare variable $pathSTRK as xs:float external;
+declare variable $pathCOL as xs:string external;
 
 declare variable $gridCOL as xs:string external := 'rgb(159,159,159)';
 
-declare variable $sheetNAME as xs:string external := 'DATASHEET CURVES';
+declare variable $sheetNAME as xs:string external := 'DATASHEET CURVERS';
 
 declare variable $sheetrID := //b:sheet[@name=$sheetNAME]/@r:id/data();
 declare variable $sheetTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'_rels/workbook.xml.rels'))//rels:Relationship[@Id=$sheetrID]/@Target/data();
 declare variable $sheetFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),$sheetTGT));
 
-declare variable $SHTdwgsrID := $sheetFILE//b:drawing/@r:id/data();
-declare variable $SHTdwgsTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'worksheets/_rels',substring-after($sheetTGT,'worksheets'),'.rels'))//rels:Relationship[@Id=$SHTdwgsrID]/@Target/data();
-declare variable $SHTdwgsFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),substring-after($SHTdwgsTGT,'../')));
+declare variable $sheetDWGSrID := $sheetFILE//b:drawing/@r:id/data();
+declare variable $sheetRELSFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),'worksheets/_rels',substring-after($sheetTGT,'worksheets'),'.rels'));
+declare variable $sheetDWGSTGT := $sheetRELSFILE//rels:Relationship[@Id=$sheetDWGSrID]/@Target/data();
+declare variable $sheetDWGSFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),substring-after($sheetDWGSTGT,'../')));
 
 declare variable $colWIDTHdef external := 9.14;
-declare variable $rowHEIGHTdef external := $sheetFILE//sheetFormatPr/@defaultRowHeight/data() cast as xs:decimal;
+(:declare variable $rowHEIGHTdef external := $sheetFILE//sheetFormatPr/@defaultRowHeight;:)
+declare variable $rowHEIGHTdef external := 12.75;
 
-declare variable $chartAREAwd external := local:chartWIDTH() cast as xs:decimal;
-declare variable $chartAREAht external := local:chartHEIGHT() cast as xs:decimal;
+declare variable $chartAREAwd external;
+declare variable $chartAREAht external;
 
-declare variable $plotAREAwd as xs:float external;
-declare variable $plotAREAht as xs:float external;
-
+declare variable $plotAREAwd external;
+declare variable $plotAREAht external;
 
 declare function local:svgTITLE($TITLE)
     {element title
@@ -53,11 +55,12 @@ declare function local:svgTITLE($TITLE)
         }
     };
 
-declare function local:svgPATH($pathCOL, $pathSTRK, $dCMD, $dXcoord, $dYcoord)
+declare function local:svgPATH($pathCOL, $pathSTRK, $dXcoord, $dYcoord)
     {element path
         {attribute stroke {$pathCOL},
          attribute stroke-width {$pathSTRK},
-         attribute d {$dCMD, $dXcoord, $dYcoord}
+         attribute d {for $pts at $idx in $dXcoord return
+                        concat(if ($idx=1) then 'M' else 'l',' ',$dXcoord[$idx],' ',$dYcoord[$idx])}
         }
     };
 
@@ -73,7 +76,7 @@ declare function local:svgRECT($rectXorg,$rectYorg,$rectWD,$rectHT,$rectFILLcol,
         }
     };
 
-declare function local:svgTEXT($txtSTYLE, $txtFONT, $txtSIZE, $txtCOL,$txtXpos,$txtYpos,$txtTEXT)
+declare function local:svgTEXT($txtSTYLE, $txtFONT, $txtSIZE, $txtCOL,$txtXpos,$txtYpos,$txtPARA)
     {element text
         {attribute x {$txtXpos},
         attribute y {$txtYpos},
@@ -81,20 +84,26 @@ declare function local:svgTEXT($txtSTYLE, $txtFONT, $txtSIZE, $txtCOL,$txtXpos,$
         attribute font-family {$txtFONT},
         attribute font-size {$txtSIZE},
         attribute fill {$txtCOL},
-        text {$txtTEXT}
+        text {if ($txtPARA castable as xs:string or $txtPARA castable as xs:float)
+                then $txtPARA
+                else for $txtELEM in $txtPARA//a:t return
+                switch ($txtELEM/preceding-sibling::a:rPr[1]/@baseline)
+                case (-25000) return local:svgTSPAN($txtELEM/text(), 'sub',$txtSIZE*0.75)
+                case (25000) return local:svgTSPAN($txtELEM/text(), 'sup',$txtSIZE*0.75)
+                default return $txtELEM/text()}
         }
     };
 
-declare function local:plotTSPAN($txtSTRNG)
+declare function local:svgTSPAN($txtSTRNG,$baseLINE,$fontSIZE)
     {element tspan
-        {attribute baseline-shift {'sub'},
-        attribute font-size {'0.18224'},
+        {attribute baseline-shift {$baseLINE},
+        attribute font-size {$fontSIZE},
         text {$txtSTRNG}
         }
     };
 
 declare function local:chartWIDTH()
-    {for $chartNAMES in $SHTdwgsFILE//xdr:cNvPr[contains(@name, 'Chart')]
+    {for $chartNAMES in $sheetDWGSFILE//xdr:cNvPr[contains(@name, 'Chart')]
     let $chartFRcol as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:col/text() cast as xs:integer
     let $chartFOFFcol as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:coloff/text() cast as xs:integer
 
@@ -114,7 +123,7 @@ declare function local:chartWIDTH()
     };
 
 declare function local:chartHEIGHT()
-    {for $chartNAMES in $SHTdwgsFILE//xdr:cNvPr[contains(@name, 'Chart')]
+    {for $chartNAMES in $sheetDWGSFILE//xdr:cNvPr[contains(@name, 'Chart')]
     let $chartFRrow as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:row/text() cast as xs:integer
     let $chartFOFFrow as xs:integer := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:rowoff/text() cast as xs:integer
 
@@ -126,22 +135,24 @@ declare function local:chartHEIGHT()
     return (sum($chartROWS) *  $rowHEIGHTdef - $chartFOFFrow + $chartTOFFrow)
     };
     
-    for $chartNAMES in $SHTdwgsFILE//xdr:cNvPr[contains(@name, 'Chart')]
-    let $chartFRrow := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:row/text()    
-    let $chartFRcol := $chartNAMES/ancestor::xdr:graphicFrame/preceding-sibling::xdr:from/xdr:col/text()
+(:for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor[xdr:cNvPr[contains(@name, 'Chart')]]:)
+(:for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor[contains(@name, 'Chart')]:)
+for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
+    let $chartFRrow := $chartANCHORS//xdr:from/xdr:row/text()    
+    let $chartFRcol := $chartANCHORS//xdr:from/xdr:col/text()
 
     order by $chartFRrow, $chartFRcol
 
-    let $chartrID := $chartNAMES/ancestor::xdr:graphicFrame//c:chart/@r:id/data()
-    let $chartTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'drawings/_rels',substring-after($SHTdwgsTGT,'drawings'),'.rels'))//rels:Relationship[@Id=$chartrID]/@Target/data() cast as xs:string
+    let $chartrID := $chartANCHORS/xdr:graphicFrame//c:chart/@r:id/data()
+    let $chartTGT := doc(concat(substring-before(document-uri(.),'workbook.xml'),'drawings/_rels',substring-after($sheetDWGSTGT,'drawings'),'.rels'))//rels:Relationship[@Id=$chartrID]/@Target/data() cast as xs:string
     let $chartFILE := doc(concat(substring-before(document-uri(.),'workbook.xml'),substring-after($chartTGT,'../')))
 
     let $plotXOrig := (try {($chartAREAwd - $plotAREAwd) div 2} catch * {$chartAREAwd * $chartFILE//plotArea//c:x/@val/data() cast as xs:float})
     let $plotYOrig := (try {($chartAREAht - $plotAREAht) div 2} catch * {$chartAREAht * $chartFILE//plotArea//c:y/@val/data() cast as xs:float})
 
-    return
-    document
-    {
+    return 
+    (:(document
+    {:)
     element svg{
     attribute width {$chartAREAwd},
     attribute height {$chartAREAht},
@@ -160,14 +171,17 @@ declare function local:chartHEIGHT()
         let $gridCOUNT := fn:round(($axMAX - $axMIN) div $axMINOR) cast as xs:integer
         
         for $gridLINE in 1 to ($gridCOUNT - 1)
+        let $VgridXcds := ($plotXOrig + ($gridLINE div $gridCOUNT * $plotAREAwd),$plotXOrig + ($gridLINE div $gridCOUNT * $plotAREAwd))
+        let $VgridYcds := ($plotYOrig,($plotYOrig + $plotAREAht))
+        let $HgridXcds := ($plotXOrig,$plotXOrig + $plotAREAwd)
+        let $HgridYcds := ($plotYOrig + ($gridLINE div $gridCOUNT * $plotAREAht),$plotYOrig + ($gridLINE div $gridCOUNT * $plotAREAht))
         return
         (switch ($axNUM)
         case 1 return (local:svgPATH(
                 $gridCOL,
-                $pathSTRK div 2,
-                ('M','l'),
-                $plotXOrig + ($gridLINE div $gridCOUNT * $plotAREAwd),
-                ($plotYOrig,($plotYOrig + $plotAREAht))
+                try {$pathSTRK div 2} catch * {0.2},
+                $VgridXcds,
+                $VgridYcds
                 ),
                 if ($gridLINE mod 2 eq 0) then
                     local:svgTEXT(
@@ -175,19 +189,17 @@ declare function local:chartHEIGHT()
                     $stdFONT,
                     try {$stdFONTptSZ} catch * {$AXES//c:txPr//@sz/data() div 100 cast as xs:decimal},
                     $axlabFONTcol,
-                    $plotXOrig + ($gridLINE div $gridCOUNT * $plotAREAwd),
-                    $plotYOrig,
+                    $VgridXcds[1],
+                    $VgridYcds[1],
                     $axMIN + ($gridLINE * $axMINOR)
                     )
                 else ()
                 )
          case 2 return (local:svgPATH(
                 $gridCOL,
-                $pathSTRK div 2,
-                ('M','l'),
-                ($plotXOrig,
-                ($plotXOrig + $plotAREAwd)),
-                $plotYOrig + ($gridLINE div $gridCOUNT * $plotAREAht)
+                 try {$pathSTRK div 2} catch * {0.2},
+                $HgridXcds,
+                $HgridYcds
                 ),
                 if ($axNUM eq 2) then
                     local:svgTEXT(
@@ -195,8 +207,8 @@ declare function local:chartHEIGHT()
                     $stdFONT,
                     try {$stdFONTptSZ} catch * {$AXES//c:txPr//@sz/data() div 100 cast as xs:decimal},
                     $axlabFONTcol,
-                    $plotXOrig,
-                    $plotYOrig + ($gridLINE div $gridCOUNT * $plotAREAht),
+                    $HgridXcds[1],
+                    $HgridYcds[1],
                     $axMIN + ($gridLINE * $axMINOR)
                     )
                 else ()
@@ -214,6 +226,27 @@ declare function local:chartHEIGHT()
         'black',
         $pathSTRK),
 
+(:pair x and y coords for SVG path by matching c:pt idx index values:)
+
+(:for $pathSERIES in $chartFILE//c:ser
+        for $serCOORDs in $pathSERIES//c:numCache/c:pt
+            let $ptIDX := $serCOORDs/@idx
+            group by $ptIDX
+            stable order by $ptIDX
+            return local:svgPATH(
+            try {$pathCOL} catch * {'black'},
+            $pathSTRK,
+            if ($ptIDX=0) then 'M' else 'L',
+            $serCOORDs[@idx=$ptIDX][1]/c:v,
+            $serCOORDs[@idx=$ptIDX][2]/c:v),
+:)
+    for $pathSERIES in $chartFILE//c:ser
+            return local:svgPATH(
+            try {$pathCOL} catch * {'black'},
+            $pathSTRK,
+            $pathSERIES/c:xVal//c:v,
+            $pathSERIES/c:yVal//c:v),
+            
 (:find drawings file via relationships and retrieve text box info:)
     let $UshapesID := $chartFILE//c:userShapes/@r:id/data()
     let $chartFILE := substring-after(document-uri(.),'/xl/charts/')
@@ -226,34 +259,26 @@ declare function local:chartHEIGHT()
         let $txtBOXy0 := $txtBOX/cdr:from/cdr:y
         let $txtBOXx1 := $txtBOX/cdr:to/cdr:x
         let $txtBOXy1 := $txtBOX/cdr:to/cdr:y
-            return (local:svgRECT($txtBOXx0,$txtBOXy0,$txtBOXx1,$txtBOXy1,'none','black',0),
+            return (local:svgRECT(
+                    $txtBOXx0,
+                    $txtBOXy0,
+                    $txtBOXx1,
+                    $txtBOXy1,
+                    'none',
+                    'black',
+                    0
+                    ),
                 let $txtPOSx := $txtBOXx0 + (($txtBOXx1 - $txtBOXx0) div 2)
                 let $txtPOSy := $txtBOXy0 + (($txtBOXy1 - $txtBOXy0) div 2)
                 return local:svgTEXT(
                     'text-anchor: middle',
-                    try {$stdFONTptSZ} catch * {},
-                    'black',
+                    $stdFONT,
+                    try {$stdFONTptSZ} catch * {$txtBOX//a:rPr//@sz/data() div 100 cast as xs:decimal},
+                    $stdFONTcol,
                     $txtBOXx0,
                     $txtBOXy0,
-                    {for $txtSTRNG in $txtBOX//a:t
-                    return 
-                    (if ($txtSTRNG/preceding-sibling::a:rPr[1]/@baseline = -25000) then local:plotTSPAN($txtSTRNG/text()) else $txtSTRNG/text())
-             })
-            )
-       )
-))},
-(:pair x and y coords for SVG path by matching c:pt idx index values:)
-for $series in c:chartSpace//c:ser
-return
- element path{
-        attribute stroke {'black'},
-        attribute stroke-width {'0.018'},
-        attribute d {for $serCOORDs in $series//c:numCache/c:pt
-        let $ptIDX := $serCOORDs/@idx cast as xs:integer
-        group by $ptIDX
-        stable order by $ptIDX
-        return concat(if ($ptIDX=0) then 'M' else 'L',$serCOORDs[@idx=$ptIDX][1]/c:v,' ',$serCOORDs[@idx=$ptIDX][2]/c:v)
-        }
-    }
-}
-}
+                    $txtBOX//a:p
+                    )
+             )
+}}(:}
+):)
