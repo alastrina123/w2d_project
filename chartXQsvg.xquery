@@ -138,8 +138,9 @@ declare function local:chartHEIGHT()
 (:for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor[xdr:cNvPr[contains(@name, 'Chart')]]:)
 (:for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor[contains(@name, 'Chart')]:)
 for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
-    let $chartFRrow := $chartANCHORS//xdr:from/xdr:row/text()    
-    let $chartFRcol := $chartANCHORS//xdr:from/xdr:col/text()
+    where $chartANCHORS//xdr:cNvPr[contains(@name, 'Chart')]
+    let $chartFRrow := $chartANCHORS//xdr:from/xdr:row    
+    let $chartFRcol := $chartANCHORS//xdr:from/xdr:col
 
     order by $chartFRrow, $chartFRcol
 
@@ -151,8 +152,8 @@ for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
     let $plotYOrig := (try {($chartAREAht - $plotAREAht) div 2} catch * {$chartAREAht * $chartFILE//plotArea//c:y/@val/data() cast as xs:float})
 
     return 
-    (:(document
-    {:)
+    (document
+    {
     element svg{
     attribute width {$chartAREAwd},
     attribute height {$chartAREAht},
@@ -201,7 +202,7 @@ for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
                 $HgridXcds,
                 $HgridYcds
                 ),
-                if ($axNUM eq 2) then
+                if ($gridLINE mod 2 eq 0) then
                     local:svgTEXT(
                     'text-anchor: middle',
                     $stdFONT,
@@ -226,20 +227,6 @@ for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
         'black',
         $pathSTRK),
 
-(:pair x and y coords for SVG path by matching c:pt idx index values:)
-
-(:for $pathSERIES in $chartFILE//c:ser
-        for $serCOORDs in $pathSERIES//c:numCache/c:pt
-            let $ptIDX := $serCOORDs/@idx
-            group by $ptIDX
-            stable order by $ptIDX
-            return local:svgPATH(
-            try {$pathCOL} catch * {'black'},
-            $pathSTRK,
-            if ($ptIDX=0) then 'M' else 'L',
-            $serCOORDs[@idx=$ptIDX][1]/c:v,
-            $serCOORDs[@idx=$ptIDX][2]/c:v),
-:)
     for $pathSERIES in $chartFILE//c:ser
             return local:svgPATH(
             try {$pathCOL} catch * {'black'},
@@ -249,9 +236,9 @@ for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
             
 (:find drawings file via relationships and retrieve text box info:)
     let $UshapesID := $chartFILE//c:userShapes/@r:id/data()
-    let $chartFILE := substring-after(document-uri(.),'/xl/charts/')
-    let $chartRELS := concat(substring-before(document-uri(.),$chartFILE),'_rels/',$chartFILE,'.rels') cast as xs:anyURI
-    let $chartDWGS := concat(substring-before(document-uri(.),'charts/'),substring-after(doc($chartRELS)/rels:Relationships/rels:Relationship[@Id=$UshapesID]/@Target/data(),'../')) cast as xs:anyURI
+    let $chartTXT := substring-after(document-uri($chartFILE),'/xl/charts/')
+    let $chartRELS := concat(substring-before(document-uri($chartFILE),$chartTXT),'_rels/',$chartTXT,'.rels') cast as xs:anyURI
+    let $chartDWGS := concat(substring-before(document-uri($chartFILE),'charts/'),substring-after(doc($chartRELS)/rels:Relationships/rels:Relationship[@Id=$UshapesID]/@Target/data(),'../')) cast as xs:anyURI
 
     for $txtBOX in doc($chartDWGS)//cdr:relSizeAnchor
     where $txtBOX//@txBox eq '1'
@@ -273,12 +260,12 @@ for $chartANCHORS in $sheetDWGSFILE//xdr:twoCellAnchor
                 return local:svgTEXT(
                     'text-anchor: middle',
                     $stdFONT,
-                    try {$stdFONTptSZ} catch * {$txtBOX//a:rPr//@sz/data() div 100 cast as xs:decimal},
+                    try {$stdFONTptSZ} catch * {$txtBOX//a:rPr//@sz[1] div 100 cast as xs:decimal},
                     $stdFONTcol,
                     $txtBOXx0,
                     $txtBOXy0,
                     $txtBOX//a:p
                     )
              )
-}}(:}
-):)
+}}}
+)
