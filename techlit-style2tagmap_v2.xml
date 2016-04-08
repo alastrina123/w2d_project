@@ -219,7 +219,7 @@
         <characterStyle styleName="Strong" tagName="b" structureType="block"/>
         <characterStyle styleName="Subscript" tagName="sub" structureType="block"/>
         <characterStyle styleName="Superscript" tagName="sup" structureType="block"/>
-		<characterStyle styleName="Overline" tagName="overline" structureType="block"/>
-        
+	<characterStyle styleName="Overline" tagName="overline" structureType="block"/>
+	<characterStyle styleName="Footnote" tagName="fn" structureType="block"/>
     </styles>
 </style2tagmap>
